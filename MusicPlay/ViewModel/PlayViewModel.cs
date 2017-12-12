@@ -308,7 +308,7 @@ namespace MusicPlay.ViewModel
 					musicPlayer.Position = tempTs;
 					return _value;
 				}
-				if (SliderValue < _value - 2)
+				else if (SliderValue < _value - 2)
 				{
 					_value = _sliderValue;
 					int param = (int)(_value * ts.TotalMilliseconds / 100);
@@ -316,10 +316,11 @@ namespace MusicPlay.ViewModel
 					musicPlayer.Position = tempTs;
 					return _value;
 				}
-				SliderValue = _value;
-
-				if (_value == 100 && Selected_Index + 1 < SongList.Count || israndom && _value == 100) PlayingNext(canexecute);
+				if (_value == 100 && Selected_Index + 1 < SongList.Count && !israndom) PlaySelectedSong(Selected_Index + 1);
+				else if (israndom && _value == 100) PlaySelectedSong(Selected_Index);
 				if (_isPaused) return _value;
+				 //|| israndom && _value == 100
+				SliderValue = _value;
 				return _value;
 			}
 			set
@@ -509,24 +510,32 @@ namespace MusicPlay.ViewModel
 		/// <param name="param">przekazany do metody słuzy do wybrania odpowiedniego obiektu o takim indeksie</param>
 		private void PlaySelectedSong(int param)
 		{
-
+			
 			if (israndom)
 			{
+				int tempRand = param;
+				SliderValue = 0;
 				Random rnd = new Random();
 				param = rnd.Next(0, SongList.Count);
+				while(param == tempRand)
+					param = rnd.Next(0, SongList.Count);
+
+
 			}
 			else if (_isPaused)
 			{
 				StartPlaying(canexecute);
+				return;
 			}
 			else if (Selected_Index > -1)
 			{
-				SliderValue = 0;
-				SelectedPath = SongList.ElementAt(param).File_Path;
-				SelectedFileName = SongList.ElementAt(param).File_Name;
-				musicPlayer.Open(new Uri(SelectedPath));
-				StartPlaying(canexecute);
+				SliderValue = 0;				
 			}
+			Reset();
+			SelectedPath = SongList.ElementAt(param).File_Path;
+			SelectedFileName = SongList.ElementAt(param).File_Name;
+			musicPlayer.Open(new Uri(SelectedPath));
+			StartPlaying(canexecute);
 
 		}
 		private void DidUserChooseRandom()
