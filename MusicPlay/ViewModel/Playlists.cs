@@ -17,9 +17,9 @@ namespace MusicPlay.ViewModel
 	{
 		private bool canexecute = true;
 		static MediaPlayer musicPlayer = new MediaPlayer();		
-		private static ObservableCollection<MusicFile>  songList = new ObservableCollection<MusicFile>();
-		 
-		private static int selectedIndex;
+		private static ObservableCollection<MusicFile>  songList = new ObservableCollection<MusicFile>();		 
+		public static  int selectedIndex;
+
 		public int SelectedIndex
 		{
 			get

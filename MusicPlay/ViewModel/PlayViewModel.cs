@@ -25,14 +25,14 @@ namespace MusicPlay.ViewModel
 		Double _volume = 100, maxVolume = 1, minVolume = 0;
 		bool _isPlaying, _isPaused = false;
 		private bool canexecute = true, israndom = false;
-		int _min = 0, _max = 100;		
-		private MusicFile musicFile = new MusicFile(0, "", "");		
+		int _min = 0, _max = 100;
+		private MusicFile musicFile = new MusicFile(0, "", "");
 		private MediaPlayer musicPlayer = new MediaPlayer();
 		private DispatcherTimer timer;
-		private RelayCommand _IncrementAsBackgroundProcess;			
+		private RelayCommand _IncrementAsBackgroundProcess;
 		#endregion
 		#region Properties
-			
+
 		public string SelectedPath
 		{
 			get { return musicFile.File_Path; }
@@ -68,7 +68,9 @@ namespace MusicPlay.ViewModel
 		{
 			get
 			{
+
 				return new RelayCommand(param => PlayingPreviuos(canexecute));
+
 			}
 		}
 		public ICommand PlayNext
@@ -84,14 +86,14 @@ namespace MusicPlay.ViewModel
 			{
 				return new RelayCommand(param => PausePlaying(canexecute));
 			}
-		}		
+		}
 		public ICommand StopCommand
 		{
 			get
 			{
 				return new RelayCommand(param => StopPlaying(canexecute));
 			}
-		}		
+		}
 		/// <summary>
 		/// zwraca metodę PlaySelectedSong
 		/// </summary>
@@ -111,7 +113,7 @@ namespace MusicPlay.ViewModel
 			{
 				return new RelayCommand(param => { (param as System.Windows.Window).Close(); });
 			}
-		}	
+		}
 		public ICommand IncrementAsBackgroundProcess
 		{
 			get
@@ -130,7 +132,7 @@ namespace MusicPlay.ViewModel
 				return new RelayCommand(param => this.DidUserChooseRandom());
 			}
 		}
-		
+
 		#endregion
 		#region properties for progress bar
 		public bool IsPlaying
@@ -207,9 +209,14 @@ namespace MusicPlay.ViewModel
 					musicPlayer.Position = tempTs;
 					return _value;
 				}
-				if (_value == 100 && list.SelectedIndex + 1 < list.SongList.Count && !israndom) PlaySelectedSong(list.SelectedIndex + 1);
-				else if (israndom && _value == 100) PlaySelectedSong(list.SelectedIndex);
+				if (_value >= 100 && list.SelectedIndex + 1 < list.SongList.Count && !israndom)
+				{
+					list.SelectedIndex += 1;					
+					PlaySelectedSong(list.SelectedIndex);
+				}
 				
+				else if (israndom && _value >= 100) PlaySelectedSong(list.SelectedIndex);
+
 				SliderValue = _value;
 				return _value;
 			}
@@ -253,7 +260,7 @@ namespace MusicPlay.ViewModel
 
 		#region konstruktor
 		public PlayViewModel()
-		{									
+		{
 		}
 		#endregion
 
@@ -286,7 +293,7 @@ namespace MusicPlay.ViewModel
 		/// <param name="sender"></param>
 		/// <param name="e"></param>
 		public void timerTick(object sender, EventArgs e)
-		{			
+		{
 			if (musicPlayer.Source != null && musicPlayer.NaturalDuration.HasTimeSpan)
 			{
 				ts = musicPlayer.NaturalDuration.TimeSpan;
@@ -310,8 +317,8 @@ namespace MusicPlay.ViewModel
 		/// </summary>
 		/// <param name="obj"></param>
 		private void StartPlaying(object obj)
-		{			
-			list.SelectedIndex = list.SongList.IndexOf(list.SongList.Where(x => x.File_Path == SelectedPath).FirstOrDefault());
+		{
+			//list.SelectedIndex = list.SongList.IndexOf(list.SongList.Where(x => x.File_Path == SelectedPath).FirstOrDefault());
 			musicPlayer.Play();
 			IncrementProgressBackgroundWorker();
 		}
@@ -365,7 +372,7 @@ namespace MusicPlay.ViewModel
 		/// </summary>
 		/// <param name="obj"></param>
 		private void PlayingNext(object obj)
-		{			
+		{
 			int playlist_length = list.SongList.Count;
 			int param = 0;
 			list.SelectedIndex = list.SongList.IndexOf(list.SongList.Where(x => x.File_Path == SelectedPath).FirstOrDefault());
@@ -379,12 +386,12 @@ namespace MusicPlay.ViewModel
 		/// <param name="param">przekazany do metody słuzy do wybrania odpowiedniego obiektu o takim indeksie</param>
 		private void PlaySelectedSong(int param)
 		{
-			
-			if (israndom && !_isPaused )
+
+			if (israndom && !_isPaused)
 			{
 				int tempRand = param;
 				SliderValue = 0;
-				Random rnd = new Random();				
+				Random rnd = new Random();
 				param = rnd.Next(0, list.SongList.Count);
 				while (param == tempRand)
 					param = rnd.Next(0, list.SongList.Count);
@@ -397,9 +404,9 @@ namespace MusicPlay.ViewModel
 			}
 			else if (list.SelectedIndex > -1)
 			{
-				SliderValue = 0;				
+				SliderValue = 0;
 			}
-			Reset();			
+			Reset();
 			SelectedPath = list.SongList.ElementAt(param).File_Path;
 			SelectedFileName = list.SongList.ElementAt(param).File_Name;
 			musicPlayer.Open(new Uri(SelectedPath));
