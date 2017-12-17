@@ -9,6 +9,7 @@ using System.Collections.ObjectModel;
 using System.Windows.Input;
 using Microsoft.Win32;
 using System.Windows.Media;
+using System.Threading;
 
 namespace MusicPlay.ViewModel
 {
@@ -17,7 +18,7 @@ namespace MusicPlay.ViewModel
 		private bool canexecute = true;
 		static MediaPlayer musicPlayer = new MediaPlayer();		
 		private static ObservableCollection<MusicFile>  songList = new ObservableCollection<MusicFile>();
-
+		 
 		private static int selectedIndex;
 		public int SelectedIndex
 		{
@@ -76,6 +77,13 @@ namespace MusicPlay.ViewModel
 				return new RelayCommand(param => this.SaveToTextFile(SongList));
 			}
 		}
+		public ICommand ClearCommand
+		{
+			get
+			{
+				return new RelayCommand(param => SongList.Clear());
+			}
+		}
 
 		public static void NameThePlaylist()
 		{
@@ -98,7 +106,7 @@ namespace MusicPlay.ViewModel
 				while((line = str.ReadLine()) != null)
 				{
 					string[] item = line.Split(';');
-					playlist.Add(new MusicFile(id++,item[0], item[1]));
+					playlist.Add(new MusicFile(id++,item[0], item[1], (TimeSpan.TryParse(item[2],out TimeSpan ts)? ts : default(TimeSpan))));
 				}
 			}
 			return playlist;
@@ -129,7 +137,7 @@ namespace MusicPlay.ViewModel
 				{
 					foreach (var item in list)
 					{
-						write.WriteLine(string.Format("{0};{1}", item.File_Path, item.File_Name));
+						write.WriteLine(string.Format("{0};{1};{2}", item.File_Path, item.File_Name,item.File_Time));
 					}
 				}
 			}
@@ -158,30 +166,71 @@ namespace MusicPlay.ViewModel
 			OpenFileDialog openDialog = new OpenFileDialog();
 			openDialog.Filter = "MP3.files (*.mp3|*.mp3|all files (*.*)|*.*)";
 			openDialog.Multiselect = true;
-			int index = 0;
-			ObservableCollection<string> path = new ObservableCollection<string>();
-			ObservableCollection<string> name = new ObservableCollection<string>();
 
 			if (openDialog.ShowDialog() == true)
 			{
-				foreach (var item in openDialog.FileNames)
-				{
-					path.Add(item);
-				}
-				foreach (var item in openDialog.SafeFileNames)
-				{
-					name.Add(item);
-				}				
-
-				if (SongList.Count > 0) index = SongList.Count;
-				;
-
-				for (int i = 0; i < name.Count; i++)
-				{
-					SongList.Add(new MusicFile(++index, path[i], name[i]));
-				}
+				AddToSongList(openDialog);				
 			}
 		}
+		/// <summary>
+		/// metoda dodaje najpierw do list zastepczych sciezke, nazwe i czas.
+		/// 
+		/// </summary>
+		/// <param name="openFile"></param>
+		private void AddToSongList(OpenFileDialog openFile)
+		{
+			int index = 0;
+			ObservableCollection<string> path = new ObservableCollection<string>();
+			ObservableCollection<string> name = new ObservableCollection<string>();
+			ObservableCollection<TimeSpan> timelist = new ObservableCollection<TimeSpan>();
+			MediaPlayer pl = new MediaPlayer();
+			TimeSpan ts = new TimeSpan();
+
+			foreach (var item in openFile.FileNames)
+			{
+				path.Add(item);
+			}
+			foreach (var item in openFile.SafeFileNames)
+			{
+				name.Add(item);
+			}
+
+			if (SongList.Count > 0) index = SongList.Count;
+
+			
+			for (int i = 0; i < path.Count; i++)
+			{
+				pl.Open(new Uri(path[i]));
+			
+				do
+				{
+					if (pl.NaturalDuration.HasTimeSpan)
+					{
+						ts = pl.NaturalDuration.TimeSpan;
+						ts = GetRoundedTimeSpan(ts);
+						timelist.Add(ts);
+					}
+
+				} while (timelist.Count <= i);
+
+			}
+			for (int i = 0; i < timelist.Count; i++)
+			{
+				SongList.Add(new MusicFile(++index, path[i], name[i], timelist[i]));
+			}
+
+		}
+
+		private TimeSpan GetRoundedTimeSpan(TimeSpan notRounded)
+		{
+			//int precision = 0;
+			int size = 7;
+			int factor = (int)Math.Pow(10,size);
+			TimeSpan roundedTimeSpan = new TimeSpan(((long)Math.Round((1.0 * notRounded.Ticks / factor)) * factor));
+			return roundedTimeSpan;
+
+		}
+
 
 		/// <summary>
 		/// pobiera index wybranego elementu z listboxa i go usuwa
@@ -193,5 +242,7 @@ namespace MusicPlay.ViewModel
 				SongList.RemoveAt(SelectedIndex);
 			}
 		}
+
+
 	}
 }

@@ -4,6 +4,7 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"          
         xmlns:local="clr-namespace:MusicPlay"
+        xmlns:i="http://schemas.microsoft.com/expression/2010/interactivity"
         xmlns:vm="clr-namespace:MusicPlay.ViewModel"
         mc:Ignorable="d"
         Title="Player" Height="460" Width="400" Background="#FF666666" BorderBrush="Black" BorderThickness="2" Icon="ButtonImages/Stop.png" ResizeMode="NoResize" Cursor="Hand">
@@ -27,6 +28,7 @@
             <Setter Property="FontSize" Value="16"/>
         </Style>
     </Window.Resources>
+    
     <!--Menu-->
     <StackPanel>
         <Menu Background="Transparent" Foreground="GreenYellow" FontFamily="Century Gothic" FontSize="15" >
@@ -37,7 +39,7 @@
             <MenuItem Header="Narzędzia" >
                 <MenuItem Header="Otwórz Listę" Command="{Binding LoadPlaylist}" Background="#FF666666" BorderBrush="#FF666666"/>
                 <MenuItem Header="Zapisz Listę" Command="{Binding SaveList}" Background="#FF666666" BorderBrush="#FF666666" />
-                <MenuItem Header="Wyczyść Listę" Command="{Binding ClearCommand}" Background="#FF666666" BorderBrush="#FF666666"/>
+                <MenuItem Header="Wyczyść Listę" Background="#FF666666" BorderBrush="#FF666666" DataContext="{StaticResource Lists}" Command="{Binding ClearCommand}"/>
             </MenuItem>
         </Menu>
         <Separator/>

@@ -130,13 +130,7 @@ namespace MusicPlay.ViewModel
 				return new RelayCommand(param => this.DidUserChooseRandom());
 			}
 		}
-		public ICommand ClearCommand
-		{
-			get
-			{
-				return new RelayCommand(param => list.SongList.Clear());
-			}
-		}
+		
 		#endregion
 		#region properties for progress bar
 		public bool IsPlaying
@@ -419,7 +413,4 @@ namespace MusicPlay.ViewModel
 		}
 		#endregion
 	}
-
-
-
 }
