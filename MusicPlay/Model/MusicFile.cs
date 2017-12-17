@@ -12,13 +12,22 @@ namespace MusicPlay.Model
 		private string file_path = "";
 		private string file_name = "";
 		private int file_index;
+		private TimeSpan file_time;
 		
 
-		public MusicFile(int id,string path,string name) 
+		public MusicFile(int id,string path,string name, TimeSpan time) 
 		{
 			file_path = path;
 			file_name = name;
 			file_index = id;
+			file_time = time;
+		}
+		public MusicFile(int id, string path, string name)
+		{
+			file_path = path;
+			file_name = name;
+			file_index = id;
+			
 		}
 
 		public string File_Path
@@ -63,6 +72,22 @@ namespace MusicPlay.Model
 				{
 					file_index = value;
 					OnPropertyChanged("File_Name");
+				}
+			}
+		}
+
+		public TimeSpan File_Time
+		{
+			get
+			{
+				return file_time;
+			}
+			set
+			{
+				if (value != file_time)
+				{
+					file_time = value;
+					OnPropertyChanged("File_Time");
 				}
 			}
 		}

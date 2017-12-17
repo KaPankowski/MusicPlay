@@ -8,13 +8,12 @@
         mc:Ignorable="d"
         Title="Player" Height="460" Width="400" Background="#FF666666" BorderBrush="Black" BorderThickness="2" Icon="ButtonImages/Stop.png" ResizeMode="NoResize" Cursor="Hand">
     <Window.DataContext>
-        <vm:PlayViewModel/>        
+        <vm:PlayViewModel/>
     </Window.DataContext>
-    
+
     <Window.Resources>
-        <!--<vm:PlayViewModel x:Key="PB"/>
-        <vm:Playlists x:Key="Lists"/>-->
-        
+        <!--<vm:PlayViewModel x:Key="PB"/>-->
+        <vm:Playlists x:Key="Lists"/>
         <Style x:Key="buttonStyle" TargetType="Button">
             <Setter Property="BorderThickness" Value="5"/>
             <Setter Property="BorderBrush" Value="Black"/>
@@ -26,14 +25,15 @@
         <Style x:Key="textStyle" TargetType="TextBlock">
             <Setter Property="FontFamily" Value="Century Gothic"/>
             <Setter Property="FontSize" Value="16"/>
-        </Style>        
+        </Style>
     </Window.Resources>
-    
+    <!--Menu-->
     <StackPanel>
         <Menu Background="Transparent" Foreground="GreenYellow" FontFamily="Century Gothic" FontSize="15" >
             <MenuItem Header="Plik" Background="Transparent">
-                <MenuItem Header="Wczytaj" Command="{Binding OpenCommand}" Background="#FF666666" BorderBrush="#FF666666"/>
-                <MenuItem Header="Wyjście" Command="{Binding ClosePlayer}"  Background="#FF666666"  BorderBrush="#FF666666" CommandParameter="{Binding RelativeSource={RelativeSource AncestorType={x:Type Window}}}" />            </MenuItem>
+                <MenuItem Header="Wczytaj" Background="#FF666666" BorderBrush="#FF666666" DataContext="{StaticResource Lists}" Command="{Binding BrowseMusicFIle}"/>
+                <MenuItem Header="Wyjście" Command="{Binding ClosePlayer}"  Background="#FF666666"  BorderBrush="#FF666666" CommandParameter="{Binding RelativeSource={RelativeSource AncestorType={x:Type Window}}}" />
+            </MenuItem>
             <MenuItem Header="Narzędzia" >
                 <MenuItem Header="Otwórz Listę" Command="{Binding LoadPlaylist}" Background="#FF666666" BorderBrush="#FF666666"/>
                 <MenuItem Header="Zapisz Listę" Command="{Binding SaveList}" Background="#FF666666" BorderBrush="#FF666666" />
@@ -41,6 +41,8 @@
             </MenuItem>
         </Menu>
         <Separator/>
+
+        <!--Upper Buttons and Progress Bar-->
         <Grid>
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
@@ -59,8 +61,10 @@
             <Button x:Name="btnPause" Content="II" Grid.Column="4" Command="{Binding PauseCommand}" Style="{StaticResource buttonStyle}" FontSize="30"/>
             <Button x:Name="btnReverse" Content="BACK" Grid.Column="1" Command="{Binding PlayPreviuos}" Style="{StaticResource buttonStyle}"/>
             <Button x:Name="btnForward" Content="NEXT" Grid.Column="3" Command="{Binding PlayNext}" Style="{StaticResource buttonStyle}"/>
-            <Label x:Name="lbFileName" Content="{Binding SelectedFileName}" Grid.Row="1" Grid.ColumnSpan="2" Margin="0,15,0,0" Foreground="GreenYellow" FontFamily="Century Gothic" FontSize="15"/>
-            <Label Content="Volume:" Grid.Row="1" Grid.Column="2" Margin="0,15,0,0" HorizontalAlignment="Right" Foreground="GreenYellow" FontFamily="Century Gothic" FontSize="15"/>
+            <Label x:Name="lbFileName" Content="{Binding SelectedFileName}" Grid.Row="1" Grid.ColumnSpan="2" Margin="0,15,0,0" Foreground="GreenYellow" 
+                   FontFamily="Century Gothic" FontSize="15"/>
+            <Label Content="Volume:" Grid.Row="1" Grid.Column="2" Margin="0,15,0,0" HorizontalAlignment="Right" Foreground="GreenYellow" 
+                   FontFamily="Century Gothic" FontSize="15"/>
             <Slider x:Name="sldVolume" Grid.Column="3" Grid.Row="1" Grid.ColumnSpan="2" Width="100" Value="{Binding Volume, Mode=TwoWay}" 
                     Maximum="{Binding MaxVolume}" Minimum="{Binding MinVolume}" Margin="0,20,0,0"/>
             <StackPanel Grid.ColumnSpan="5" Grid.Row="2">
@@ -68,42 +72,47 @@
                         Minimum="{Binding Min}" IsSnapToTickEnabled="True" IsMoveToPointEnabled="True"  />
                 <ProgressBar x:Name="barPrograss" Height="20" Margin="5" Maximum="{Binding Max}" Minimum="{Binding Min}"
                              Value="{Binding Path=Value}" Foreground="LawnGreen" BorderBrush="Black" BorderThickness="2"/>
-            </StackPanel>            
+            </StackPanel>
         </Grid>
+        <!--Listbox-->
         <ListBox x:Name="lstboxPlayList" Background="Transparent"  Height="200" Margin="5,0,5,0" 
-                 Foreground="GreenYellow" ItemsSource="{Binding SongList}" SelectedIndex="{Binding Selected_Index, Mode=TwoWay}" >           
+                 Foreground="GreenYellow" DataContext="{StaticResource Lists}" ItemsSource="{Binding SongList}" SelectedIndex="{Binding SelectedIndex, Mode=TwoWay}">
             <ListBox.ItemTemplate>
                 <DataTemplate>
                     <Grid>
-                        <Grid.InputBindings>
-                            <MouseBinding Gesture="LeftDoubleClick" Command="{Binding RelativeSource={RelativeSource AncestorType=ListBox}, Path=DataContext.ItemSelected}"/>                            
+                        <Grid.InputBindings>                           
+                            <MouseBinding Gesture="LeftDoubleCLick" Command="{Binding RelativeSource={RelativeSource AncestorType=Window}, Path=DataContext.ItemSelected}"/>
                         </Grid.InputBindings>
                         <Grid.ColumnDefinitions>
                             <ColumnDefinition Width="20"/>
                             <ColumnDefinition Width="auto"/>
                             <ColumnDefinition Width="auto"/>
+                            <ColumnDefinition Width="auto"/>
+                            <ColumnDefinition Width="auto"/>
                         </Grid.ColumnDefinitions>
                         <TextBlock Text="{Binding File_Index}" Style="{StaticResource textStyle}"/>
                         <TextBlock Text=". " Style="{StaticResource textStyle}" Grid.Column="1"/>
-                        <TextBlock Text="{Binding File_Name}" Style="{StaticResource textStyle}" Grid.Column="2"/>                     
+                        <TextBlock Text="{Binding File_Name}" Style="{StaticResource textStyle}" Grid.Column="2"/>
+                        <TextBlock Text=" . " Style="{StaticResource textStyle}" Grid.Column="3"/>
+                        <TextBlock Text="{Binding File_Time}" Style="{StaticResource textStyle}" Grid.Column="4"/>
                     </Grid>
                 </DataTemplate>
             </ListBox.ItemTemplate>
         </ListBox>
+        <!--Bottom Buttons-->
         <Grid HorizontalAlignment="Left">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="*"/>
                 <ColumnDefinition Width="*"/>
-                <ColumnDefinition Width="auto"/>                
+                <ColumnDefinition Width="auto"/>
             </Grid.ColumnDefinitions>
-            <Button x:Name="btnSave" Content="Save" Margin=" 5,5,5,5" Command="{Binding SaveList}" Style="{StaticResource buttonStyle}" Width="70"/>
-            <Button x:Name="btnLoad" Content="Load" Margin=" 5,5,5,5" Grid.Column="1" Command="{Binding LoadPlaylist}" Style="{StaticResource buttonStyle}" Width="70"/>
-            <Button x:Name="btnDelete" Content="Delete" Margin="5,5,5,5" Grid.Column="2" Command="{Binding DeleteSongCommand}" 
-                    CommandParameter="{Binding SelectedIndex , ElementName=lstboxPlayList}" Style="{StaticResource buttonStyle}" Width="70"/>            
+            <Button x:Name="btnSave" Content="Save" Margin=" 5,5,5,5" Style="{StaticResource buttonStyle}" Width="70" DataContext="{StaticResource Lists}" Command="{Binding SavePlayList}"/>
+            <Button x:Name="btnLoad" Content="Load" Margin=" 5,5,5,5" Grid.Column="1" Style="{StaticResource buttonStyle}" Width="70" DataContext="{StaticResource Lists}" Command="{Binding LoadToSongList}"/>
+            <Button x:Name="btnDelete" Content="Delete" Margin="5,5,5,5" Grid.Column="2" Style="{StaticResource buttonStyle}" Width="70"
+                    DataContext="{StaticResource Lists}" Command="{Binding DeleteSong}" CommandParameter="{Binding SelectedIndex, ElementName=lstboxPlayList}"/>
             <CheckBox x:Name="radRandom" Content="Random" Margin="5,12,5,5" Grid.Column="4" Command="{Binding IsRandomCommand}" BorderThickness="4" 
                       BorderBrush="Black" Background="GreenYellow" Foreground="GreenYellow" FontFamily="Century Gothic" FontSize="15"/>
         </Grid>
     </StackPanel>
 </Window>
-    

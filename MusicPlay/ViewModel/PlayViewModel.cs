@@ -17,78 +17,22 @@ namespace MusicPlay.ViewModel
 {
 	class PlayViewModel : ObservedObject
 	{
+		Playlists list = new Playlists();
+
 		#region  fields 		
 		TimeSpan ts;
 		Double _value, _sliderValue = 0;
 		Double _volume = 100, maxVolume = 1, minVolume = 0;
 		bool _isPlaying, _isPaused = false;
 		private bool canexecute = true, israndom = false;
-		int _min = 0, _max = 100, _selected_index;
-		private MusicFile musicFile = new MusicFile(0, "", "");
-		protected static ObservableCollection<MusicFile> songList = new ObservableCollection<MusicFile>();
+		int _min = 0, _max = 100;		
+		private MusicFile musicFile = new MusicFile(0, "", "");		
 		private MediaPlayer musicPlayer = new MediaPlayer();
 		private DispatcherTimer timer;
-		private RelayCommand _IncrementAsBackgroundProcess;
-		private ICommand _openCommand;
-		private ICommand _playCommand;
-		private ICommand _stopCommand;
-		private ICommand _pauseCommand;
-		private ICommand _playNextCommand;
-		private ICommand _playPreviousCommand;
-		private ICommand _saveList;
-		private ICommand _loadListCommand;
+		private RelayCommand _IncrementAsBackgroundProcess;			
 		#endregion
-
 		#region Properties
-		public MusicFile FileSong
-		{
-			get
-			{
-				return musicFile;
-			}
-			set
-			{
-				if (value != musicFile)
-				{
-					musicFile = value;
-					OnPropertyChanged("FileSong");
-				}
-			}
-		}
-		public RelayCommand ItemSelected { get; set; }
-		public int Selected_Index
-		{
-			get
-			{
-				return _selected_index;
-			}
-			set
-			{
-				if (_selected_index != value)
-				{
-
-					_selected_index = value;
-
-					OnPropertyChanged("Selected_Index");
-				}
-			}
-		}
-		public ObservableCollection<MusicFile> SongList
-		{
-			get
-			{
-				return songList;
-			}
-
-			set
-			{
-				if (value != songList)
-				{
-					songList = value;
-					OnPropertyChanged("SongList");
-				}
-			}
-		}
+			
 		public string SelectedPath
 		{
 			get { return musicFile.File_Path; }
@@ -113,78 +57,41 @@ namespace MusicPlay.ViewModel
 
 		}
 		#region ICommand properties
-		public ICommand LoadPlaylist
+		public ICommand ItemSelected
 		{
 			get
 			{
-				return _loadListCommand;
-			}
-			set
-			{
-				_loadListCommand = value;
+				return new RelayCommand(param => PlaySelectedSong(list.SelectedIndex));
 			}
 		}
 		public ICommand PlayPreviuos
 		{
-			get { return _playPreviousCommand; }
-			set
+			get
 			{
-				_playPreviousCommand = value;
+				return new RelayCommand(param => PlayingPreviuos(canexecute));
 			}
 		}
 		public ICommand PlayNext
 		{
-			get { return _playNextCommand; }
-			set
+			get
 			{
-				_playNextCommand = value;
+				return new RelayCommand(param => PlayingNext(canexecute));
 			}
 		}
 		public ICommand PauseCommand
 		{
 			get
 			{
-				return _pauseCommand;
+				return new RelayCommand(param => PausePlaying(canexecute));
 			}
-			set
-			{
-				_pauseCommand = value;
-			}
-		}
-		public ICommand SaveList
-		{
-			get
-			{
-				return _saveList;
-			}
-			set
-			{
-				_saveList = value;
-			}
-		}
+		}		
 		public ICommand StopCommand
 		{
 			get
 			{
-
-				return _stopCommand;
+				return new RelayCommand(param => StopPlaying(canexecute));
 			}
-			set
-			{
-				_stopCommand = value;
-			}
-		}
-		public ICommand OpenCommand
-		{
-			get
-			{
-				return _openCommand;
-			}
-			set
-			{
-				_openCommand = value;
-			}
-		}
+		}		
 		/// <summary>
 		/// zwraca metodę PlaySelectedSong
 		/// </summary>
@@ -192,9 +99,7 @@ namespace MusicPlay.ViewModel
 		{
 			get
 			{
-
-				return new RelayCommand(param => this.PlaySelectedSong(Selected_Index));
-
+				return new RelayCommand(param => this.PlaySelectedSong(list.SelectedIndex));
 			}
 		}
 		/// <summary>
@@ -206,14 +111,7 @@ namespace MusicPlay.ViewModel
 			{
 				return new RelayCommand(param => { (param as System.Windows.Window).Close(); });
 			}
-		}
-		public ICommand DeleteSongCommand
-		{
-			get
-			{
-				return new RelayCommand(param => this.DeleteSongFromList());
-			}
-		}
+		}	
 		public ICommand IncrementAsBackgroundProcess
 		{
 			get
@@ -236,12 +134,11 @@ namespace MusicPlay.ViewModel
 		{
 			get
 			{
-				return new RelayCommand(param => SongList.Clear());
+				return new RelayCommand(param => list.SongList.Clear());
 			}
 		}
 		#endregion
 		#region properties for progress bar
-
 		public bool IsPlaying
 		{
 			get
@@ -316,10 +213,9 @@ namespace MusicPlay.ViewModel
 					musicPlayer.Position = tempTs;
 					return _value;
 				}
-				if (_value == 100 && Selected_Index + 1 < SongList.Count && !israndom) PlaySelectedSong(Selected_Index + 1);
-				else if (israndom && _value == 100) PlaySelectedSong(Selected_Index);
-				if (_isPaused) return _value;
-				 //|| israndom && _value == 100
+				if (_value == 100 && list.SelectedIndex + 1 < list.SongList.Count && !israndom) PlaySelectedSong(list.SelectedIndex + 1);
+				else if (israndom && _value == 100) PlaySelectedSong(list.SelectedIndex);
+				
 				SliderValue = _value;
 				return _value;
 			}
@@ -363,15 +259,7 @@ namespace MusicPlay.ViewModel
 
 		#region konstruktor
 		public PlayViewModel()
-		{
-			OpenCommand = new RelayCommand(Browse, param => this.canexecute);
-			StopCommand = new RelayCommand(StopPlaying, param => this.canexecute);
-			PauseCommand = new RelayCommand(PausePlaying, param => this.canexecute);
-			PlayNext = new RelayCommand(PlayingNext, param => this.canexecute);
-			PlayPreviuos = new RelayCommand(PlayingPreviuos, param => this.canexecute);
-			ItemSelected = new RelayCommand(StartPlayingAfterDoubleClick);
-			SaveList = new RelayCommand(SavePlaylistToFIle, param => this.canexecute);
-			LoadPlaylist = new RelayCommand(LoadPlayListFromFile, param => this.canexecute);
+		{									
 		}
 		#endregion
 
@@ -404,17 +292,7 @@ namespace MusicPlay.ViewModel
 		/// <param name="sender"></param>
 		/// <param name="e"></param>
 		public void timerTick(object sender, EventArgs e)
-		{
-			//var dispatcher = Application.Current.Dispatcher;
-			//dispatcher.BeginInvoke((Action)(() =>
-			//{				
-			//	if (musicPlayer.Source != null && musicPlayer.NaturalDuration.HasTimeSpan)
-			//	{
-			//		ts = musicPlayer.NaturalDuration.TimeSpan;
-			//		Value = ((double)musicPlayer.Position.TotalMilliseconds / ts.TotalMilliseconds) * 100;
-			//	}
-			//}
-			//));
+		{			
 			if (musicPlayer.Source != null && musicPlayer.NaturalDuration.HasTimeSpan)
 			{
 				ts = musicPlayer.NaturalDuration.TimeSpan;
@@ -438,8 +316,8 @@ namespace MusicPlay.ViewModel
 		/// </summary>
 		/// <param name="obj"></param>
 		private void StartPlaying(object obj)
-		{
-			Selected_Index = SongList.IndexOf(SongList.Where(x => x.File_Path == SelectedPath).FirstOrDefault());
+		{			
+			list.SelectedIndex = list.SongList.IndexOf(list.SongList.Where(x => x.File_Path == SelectedPath).FirstOrDefault());
 			musicPlayer.Play();
 			IncrementProgressBackgroundWorker();
 		}
@@ -449,7 +327,7 @@ namespace MusicPlay.ViewModel
 		/// <param name="obj"></param>
 		private void StartPlayingAfterDoubleClick(object obj)
 		{
-			PlaySelectedSong(Selected_Index);
+			PlaySelectedSong(list.SelectedIndex);
 		}
 		/// <summary>
 		/// zatrzymuję odtwarzanie i resetuje SliderValue do 0;
@@ -468,7 +346,6 @@ namespace MusicPlay.ViewModel
 		{
 			_isPaused = true;
 			musicPlayer.Pause();
-
 		}
 		/// <summary>
 		/// <param name="param">zmienna w której ustawia się wartość indeksu w zależności od wykonywanej metody</param>
@@ -479,9 +356,9 @@ namespace MusicPlay.ViewModel
 		/// <param name="obj"></param>
 		private void PlayingPreviuos(object obj)
 		{
-			Selected_Index = SongList.IndexOf(SongList.Where(x => x.File_Path == SelectedPath).FirstOrDefault());
+			list.SelectedIndex = list.SongList.IndexOf(list.SongList.Where(x => x.File_Path == SelectedPath).FirstOrDefault());
 			int param = 0;
-			if (Selected_Index - 1 > 0) param = Selected_Index - 1;
+			if (list.SelectedIndex - 1 > 0) param = list.SelectedIndex - 1;
 			else param = 0;
 			PlaySelectedSong(param);
 		}
@@ -494,15 +371,13 @@ namespace MusicPlay.ViewModel
 		/// </summary>
 		/// <param name="obj"></param>
 		private void PlayingNext(object obj)
-		{
-			int playlist_length = SongList.Count;
+		{			
+			int playlist_length = list.SongList.Count;
 			int param = 0;
-			Selected_Index = SongList.IndexOf(SongList.Where(x => x.File_Path == SelectedPath).FirstOrDefault());
-			if (Selected_Index + 1 < playlist_length) param = Selected_Index + 1;
+			list.SelectedIndex = list.SongList.IndexOf(list.SongList.Where(x => x.File_Path == SelectedPath).FirstOrDefault());
+			if (list.SelectedIndex + 1 < playlist_length) param = list.SelectedIndex + 1;
 			else param = playlist_length - 1;
 			PlaySelectedSong(param);
-
-
 		}
 		/// <summary>
 		/// Metoda ustawiajaca odpowiedni element Listy obiektu MusicPlay i wywołuje metodę zaczynającą jego odtwarzanie
@@ -511,29 +386,28 @@ namespace MusicPlay.ViewModel
 		private void PlaySelectedSong(int param)
 		{
 			
-			if (israndom)
+			if (israndom && !_isPaused )
 			{
 				int tempRand = param;
 				SliderValue = 0;
-				Random rnd = new Random();
-				param = rnd.Next(0, SongList.Count);
-				while(param == tempRand)
-					param = rnd.Next(0, SongList.Count);
-
-
+				Random rnd = new Random();				
+				param = rnd.Next(0, list.SongList.Count);
+				while (param == tempRand)
+					param = rnd.Next(0, list.SongList.Count);
 			}
 			else if (_isPaused)
 			{
+				_isPaused = false;
 				StartPlaying(canexecute);
 				return;
 			}
-			else if (Selected_Index > -1)
+			else if (list.SelectedIndex > -1)
 			{
 				SliderValue = 0;				
 			}
-			Reset();
-			SelectedPath = SongList.ElementAt(param).File_Path;
-			SelectedFileName = SongList.ElementAt(param).File_Name;
+			Reset();			
+			SelectedPath = list.SongList.ElementAt(param).File_Path;
+			SelectedFileName = list.SongList.ElementAt(param).File_Name;
 			musicPlayer.Open(new Uri(SelectedPath));
 			StartPlaying(canexecute);
 
@@ -543,69 +417,6 @@ namespace MusicPlay.ViewModel
 			if (israndom) israndom = false;
 			else if (!israndom) israndom = true;
 		}
-		#endregion
-
-		#region Metody odpowiedzialne za playlistę
-		/// <summary>
-		/// Metoda słuzy do wybierania plików do playlisty. 
-		/// Po wybraniu pliku dodaje do Listy obiektu MusicFile ścieżkę pliku i jego nazwę.
-		/// Zmienia również na liście uzytkownika zaznaczony wlement na ostatni dodany.
-		/// </summary>
-		/// <param name="obj"></param>
-		private void Browse(object obj)
-		{
-			OpenFileDialog openDialog = new OpenFileDialog();
-			openDialog.Filter = "MP3.files (*.mp3|*.mp3|all files (*.*)|*.*)";
-			openDialog.Multiselect = true;
-			int index = 0;
-			ObservableCollection<string> path = new ObservableCollection<string>();
-			ObservableCollection<string> name = new ObservableCollection<string>();
-
-			if (openDialog.ShowDialog() == true)
-			{
-				foreach (var item in openDialog.FileNames)
-				{
-					path.Add(item);
-				}
-				foreach (var item in openDialog.SafeFileNames)
-				{
-					name.Add(item);
-				}
-
-				if (SongList.Count > 0) index = songList.Count;
-				;
-				
-				for (int i = 0; i < name.Count; i++)
-				{
-					SongList.Add(new MusicFile(++index, path[i], name[i]));
-				}
-			}
-		}
-		/// <summary>
-		/// pobiera index wybranego elementu z listboxa i go usuwa
-		/// </summary>
-		private void DeleteSongFromList()
-		{
-			if (SongList.Count > 0 && Selected_Index >= 0)
-			{
-				SongList.RemoveAt(Selected_Index);
-			}
-		}
-		private void SavePlaylistToFIle(object obj)
-		{
-			Playlists.SaveTextFile(SongList);
-		}
-		private void LoadPlayListFromFile(object obj)
-		{
-			OpenFileDialog openDialog = new OpenFileDialog();
-			openDialog.Filter = "txt.files (*.txt|*.txt|all files (*.*)|*.*)";
-			if (openDialog.ShowDialog() == true)
-			{
-				string path = openDialog.FileName;
-				SongList = Playlists.LoadPlaylist(path);
-			}
-		}
-		
 		#endregion
 	}
 
